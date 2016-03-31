@@ -515,6 +515,7 @@ void loop()
             place_cube_to_platform();
             drive_to_starting_position();
             
+            // after this it loops to the top of the code again
 
 
 
@@ -1059,7 +1060,7 @@ void rotateCounterClockwise(int speed, int angle)
 
 //**////////////////////////////////////////////////////
 
-vo
+
 
 
 
