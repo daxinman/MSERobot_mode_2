@@ -1,15 +1,9 @@
-//hibby
-
 #include <PID_v1.h> //PID library
-
 #include <uSTimer2.h>
-
 #include <I2CEncoder.h>
-
 #include <Servo.h>
 #include <EEPROM.h>
 #include <uSTimer2.h>
-
 #include <Wire.h>
 #include <I2CEncoder.h>
 
@@ -510,32 +504,7 @@ void loop()
 
 
 
-          delay(1000);
-          /*
-            rotateClockwise(200, 175); //arguments are speed differential and angle of rotation
-            stop_motors();
-            delay(1000);
-            initPos();
-            Serial.println("Home position: ");
-            Serial.print("X: ");
-            Serial.println(home_pos[0]);
-            Serial.print("Y: ");
-            Serial.println(home_pos[1]);*/
-          pingLeft();
-          pingRight();
-          pingBack();
-          pingFront();
-          current_pos[0] = cmLeft;
-          current_pos[1] = cmBack;
-          while (encoder_FrontRightMotor.getRawPosition() < 10000)
-          {
-
-            forward(300);
-          }
-
-          stop_motors();
-          delay(10000);
-
+        // put code here
 
 
 
@@ -1030,95 +999,7 @@ void initPos()
 //DOES NOT CONCERN ITSELF IF THE CUBE
 //IS REAL OR NOT JSUT YET (SEPERATE FUNCTION)
 //*////////////////////////////////////
-void searchForCube()
-{
-  //while we're within our side of the course (our side of neutral zone)
-  while (current_pos[0] < ((sideLength / 2) - 2))
-  {
-    //checks for wall in front of robot
-    pingFront();
-    while (cmFront > 25) //arbitrary distance
-    {
-      forward(100);
 
-
-    } //end while
-
-    //if here, robot needs to turn around;
-    rotateClockwise(100, 180);//function should have a case for 180, where it flips
-    //the directionality register in "current_pos"
-
-    //if robot is now facing positive y-dir
-    if (current_pos[2] == 0)
-    {
-      pingLeft();
-      while (cmLeft < (current_pos[0]) + 10) //gets the robvot to move right one robot width
-        moveRight(100);
-    }
-    stop_motors(); //stop robot
-
-
-    if (current_pos[2] == 1)
-    {
-      pingRight();
-      while (cmRight < (current_pos[0]) + 10) //gets the robvot to move right one robot width
-        moveLeft(100);
-    }
-    stop_motors();
-
-    /////////////////////////////////////////////
-    //CRITICAL TO OPERATION, DO NOT DELETE!!!!!
-    numberOfPasses = numberOfPasses + 1; //increments the number of passes variable so we keep a standard width from the wall
-
-
-  }//end while
-
-}//end function
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//TO DEBUG, SERIAL PRINT THE ARRAY "current_pos" TO MAKE SURE ITS VALUES
-//ARE BEING UPDATED IN REAL-TIME
-//
-//
-//
-/////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-
-//Checking if the Tesseract is Real or Not using the hall effect sensor
-
-void checkCube() {
-  int raw = analogRead(0);  //**will need to change the pin number
-  //Hall Effect range might be from 0-1024, will have to test this
-  //and see the values that the
-
-  // If needed to debug/see the readings uncomment this part
-  //  Serial.print("Raw Flux Reading: ");
-  //  Serial.println(raw);
-
-  long magneticFlux = raw - NOFIELD;
-  // Make a global variable called "NOFIELD" and make it the value that the
-  // hall effect detects when there is no field
-
-  if (magneticFlux == 0) {
-    // Input code to dipose of the tesseract
-    // Possibly call the pickup function and drive to home position and dispose?
-    // void PickUpTesseract();
-
-  }
-
-  else {
-    // Return to home position and callthe indexing function
-    // void PickUpTesseract();
-    // void goHome();
-  }
-}//end function
 
 //rotate counterclock wise with the speed and angle
 void rotateCounterClockwise(int speed, int angle)
@@ -1148,67 +1029,10 @@ void rotateCounterClockwise(int speed, int angle)
     }
   }
 }
-//}//ADDED THIS TO END CHECKCUBE FUNCTION
 
 
 
 
-
-void goHome()
-{
-  last_known_cube_pos[0] = current_pos[0];
-  last_known_cube_pos[1] = current_pos[1];
-  last_known_cube_pos[2] = current_pos[2];
-
-  // records our current position to last known so we know where to start searching
-
-
-  if (current_pos[2] == 1) //facing negative y
-  {
-
-    while (current_pos[0] > home_pos[0] + 20)  //x-dir-> leaving enough room to turn to face the side wall
-    {
-      moveRight(100);
-      pingRight(); //updates our x values
-    }
-    stop_motors();
-
-    //now right along the side wall
-    while (current_pos[1] > home_pos[1] + 20) { //y-dir -> leaving enough room to start indexing
-      forward(100);
-    }
-    stop_motors(); //have to stop the motors after we move, or we'll continue driving in that direction forever,
-    // else it's good practise
-
-    rotateClockwise(100, 90); //rotates 90 degrees with speedy = 100
-    stop_motors();
-    orientForDropOff(); //orients the robot for indexing and dropping off cubes
-
-
-    if (current_pos[2] == 0) //facing positive y
-    {
-      rotateCounterClockwise(100, 180); //turns to face negative y direction
-
-      while (current_pos[0] > home_pos[0])// x - dir-> leave room for rotation
-      {
-        moveRight(100);
-        pingRight(); //updates position
-      }
-      stop_motors();
-
-      //now right along the side wall
-      while (current_pos[1] > home_pos[1] + 20) { //y-dir -> leaving enough room to start indexing
-        forward(100);
-      }
-      stop_motors(); //have to stop the motors after we move, or we'll continue driving in that direction forever,
-      // else it's good practise
-
-      rotateClockwise(100, 90); //rotates 90 degrees with speedy = 100
-      stop_motors();
-      orientForDropOff();
-    }
-  }
-}//end go home
 
 
 
@@ -1224,33 +1048,6 @@ void goHome()
 //EXITS INTO INDEXING FUNCTION WHEN LINE TRACKER READS THE FIRST DARK LINE
 
 //*////////////////////////////////////////////////
-
-void orientForDropOff()
-{
-  //readLineTrackers(); //taken from Lab04 code
-
-  //CONDITION NEEDS TO CHANGE, BUT BASICALLY THE LOOP RUNS WHILE THE GRIP LINE TRACKER IS LIGHT
-  //MIGHT HAVE TO CHANGE THIS TO A "LATCHED" GLOBAL VARIABLE B/C IT MIGHT OVERSHOOT THE TARGET
-
-
-  //////////////////////////////////
-  //pretty much this goes in the conditional part:
-  //"(gripLinetrackerdata.analogRead() < dark_cutoff_value) || (PingLeft() < 5)"
-
-  while (cmBack == 2) //second condition prevents overshoot entirely //useless crap as placeholder in while loop condition
-  {
-    moveLeft(100);
-    pingLeft(); //updates position
-    //NOTE: runing this will change our current x and y positions (they will get reversed),
-    //but this shouldn't really affect anything, as we're not using the x and y variables directly here
-  }
-  stop_motors();
-
-
-  //////NOT WRITTEN YET
-  //index(); //returns into the index code
-  //function still needs to be written
-}
 
 
 
@@ -1269,79 +1066,6 @@ void orientForDropOff()
 
 //*////////////////////////////////////
 
-void backToLastKnownCube()
-{
-  //initially facing negative x-dir
-  if (last_known_cube_pos[2] == 0) //if we were facing positive direction when we picked up the cube
-  {
-    rotateClockwise(100, 90); //90 degrees to face positive y-dir
-    current_pos[2] = 0; //manually reset directionality register var to positive y-dir
-    //now facing correct direction
-
-    //moving in positive x-dir until our current position matches the last known cube pos x-dir
-    while (current_pos[0] < last_known_cube_pos[0])
-    {
-      moveRight(100);
-      pingLeft();
-      cmLeft = current_pos[0]; //setting x-val to current left untrasonic reading
-    }
-    stop_motors(); //stop moving left
-    //if here, now x coordinate is correct
-
-    //now set the y-direction back to where we were when we picked up the cube (minus some value to get some overlap in searching pattern)
-    while (current_pos[1] < (last_known_cube_pos[1] - 7))
-    {
-      forward(100); //function takes care of driving straight, makes use of veerLeft() and veerRight()
-      pingBack();
-      cmBack = current_pos[1];
-    }
-    stop_motors();
-
-    //now we can call search for cube function again and resume out search
-    searchForCube();
-
-  } //end if
-
-  else if (last_known_cube_pos[2] == 1) //if we were facing negative y-dir when we picked up the last cube
-  {
-    rotateCounterClockwise(100, 90); //rotate to negative y- dir
-
-    //now we're facing in the correct direction
-
-
-    current_pos[2] = 1; //manually reset directionality register var to positive y-dir
-
-    //now set the y-direction back to where we were when we picked up the cube (minus some value to get some overlap in searching pattern)
-    while (current_pos[1] < (last_known_cube_pos[1] + 7))
-    {
-      reverse(100); //function takes care of driving straight, makes use of veerLeft() and veerRight()
-      pingFront();
-      cmFront = current_pos[1];
-    }
-    stop_motors();
-
-    //moving in positive x-dir until our current position matches the last known cube pos x-dir
-    while (current_pos[0] < last_known_cube_pos[0])
-    {
-      moveLeft(100);
-      pingRight();
-      cmRight = current_pos[0]; //setting x-val to current left untrasonic reading
-    }
-    stop_motors(); //stop moving left
-    //if here, now x coordinate is correct
-
-
-
-    //now we can call search for cube function again and resume out search
-    searchForCube();
-
-
-
-  }//end else if
-
-
-}//end backtolastknowncube()
-
 
 
 ///////////////////////////////////////////////////**
@@ -1357,42 +1081,7 @@ void backToLastKnownCube()
 
 //**////////////////////////////////////////////////////
 
-void disposeCube()
-{
-  //pickUpCube(); //FUNCTION STILL NEEDS TO BE WRITTEN TO MOVE ARM MOVEMENTS
-
-  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //MIGHT HAVE TO REVERSE A LITTLE BEFORE WE TURN
-  //COME BACK TO THIS AND CHECK
-  if (current_pos[2] == 0) //positive y-dir
-  {
-    rotateCounterClockwise(100, 180);//CCW to avoid hitting other cubes
-    pingFront();
-    while (cmFront > 25)
-    {
-      forward(200);
-    }
-    stop_motors();
-    //Get_rid_of_cube(); //NEEDS TO BE WRITTEN
-    //HARD CODE IN ARM MOVEMENTS TO EXTEND AND DROP CUBE FROM HEIGHT FOR DRAMATIC EFFECT
-  }//end if
-
-  else if (current_pos[2] == 1) //negative y-dir
-  {
-    rotateClockwise(100, 180);//CW to avoid hitting other cubes
-    pingFront();
-    while (cmFront > 25)
-    {
-      forward(200);
-    }
-    stop_motors();
-    //Get_rid_of_cube(); //NEEDS TO BE WRITTEN
-    //HARD CODE IN ARM MOVEMENTS TO EXTEND AND DROP CUBE FROM HEIGHT FOR DRAMATIC EFFECT
-  }//end else if
-
-}//end disposeCube()
-
-
+vo
 
 
 
@@ -1442,60 +1131,6 @@ void veerLeft(int speedy, int xDistance) {
   }
 }
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////
-//JULIAN'S NOTES:
-
-//FUNCTION NEEDS TO BE MORE GENERAL:
-//-->INSTEAD OF USING VARIABLES FROM OUR LAST KNOWN POSITION ARRAY
-//TRY STORING OUR POSITION WHEN WE ENTER THIS FUNCTION INTO OUR
-//CURRENT POSITION ARRAY, THEN MOVE LEFT OR RIGHT A CERTAIN SPEED
-//WHILE USING A SCHMIDTT TRIGGER TO KEEP THE DISTANCE FROM THE FRONT OR
-//BACK WALL CONSTANT
-//--> TRY USING A FUNCTION ARGUMENT TO SET WHETHER WE MONITOR THE FRONT OR BACK ULTRASONIC
-
-//March 27 2015
-//Gamaliel Obinyan
-//Added moveLeft() and moveRight(), a lot of caliberation still needs to be done
-
-/*
-  void moveLeft(int slidingSpeed, int horizontalDistance)
-  //lastCubePosition is where we dropped off the very last cube
-  //slidingSpeed is what we caliberate as the best speed move sideways
-  leftDistance = horizontalDistance;
-  //hor
-  {
-  pingLeft();
-  while(lastCubePosition - 3 < leftDistance) //"-3" indicates the the next postion for a cub; we can measure the distance; wea can also change the greater than to less than based on the orientation
-  {
-  servo_FrontLeftMotor.writeMicroseconds(1500 - slidingSpeed);
-  servo_FrontRightMotor.writeMicroseconds(1500 + slidingSpeed);
-  servo_BackLeftMotor.writeMicroseconds(1500 + slidingSpeed);
-  servo_BackRightMotor.writeMicroseconds(1500 - slidingSpeed);
-  }
-  }
-  void moveRight(int slidingSpeed, int horizontalDistance)
-  //lastCubePosition is where we dropped off the very last cube
-  //slidingSpeed is what we caliberate as the best speed move sideways
-  leftDistance = horizontalDistance;
-  //hor
-  {
-  pingLeft();
-  while(lastCubePosition - 3 < leftDistance) //"-3" indicates the the next postion for a cub; we can measure the distance; wea can also change the greater than to less than based on the orientation
-  {
-  servo_FrontLeftMotor.writeMicroseconds(1500 + slidingSpeed);
-  servo_FrontRightMotor.writeMicroseconds(1500 - slidingSpeed);
-  servo_BackLeftMotor.writeMicroseconds(1500 - slidingSpeed);
-  servo_BackRightMotor.writeMicroseconds(1500 + slidingSpeed);
-  }
-  }
-*/
 
 /////////////////////////////////////////////////////////////////
 //JULIAN ZANE
