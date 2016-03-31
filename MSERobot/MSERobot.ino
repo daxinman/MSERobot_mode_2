@@ -502,9 +502,20 @@ void loop()
             /*************************************************************************************/
 
 
+           rotateClockwise(150,90); // assume started facing positive y direction
+            while(cmFront > 99) // 99 will need to be changed 
+            {
+              forward(150); 
+            }
+            extend_arm();
+            wait_for_cube();
+            pick_up_cube();
+            rotateClockwise(150, 90); // should be facing the platform now (negative y)
+            go_to_platform();
+            place_cube_to_platform();
+            drive_to_starting_position();
+            
 
-
-        // put code here
 
 
 
@@ -525,32 +536,6 @@ void loop()
         }
         break;
       }
-
-
-
-
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //NOTE FOR WHOEVER LOOKS INTO CALIBRATING MOTORS:
-    //THE CODE FROM LAB04 (HERE) NEEDS TO BE MODIFIED TO USE 4 MOTORS
-    //
-    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-    
-
-    
-
-
-
-
-
-
-
-    
-
 
 
 
@@ -624,16 +609,9 @@ void forward(int speed) {
 
 
 
-
-
 //IF PID WORKS, WRITE THE REST OF THE PID CONTROL CODE HERE
 
 
-
-
-
-
-  
 
   //////////////////////////////////
   //added from searchForCubes()
@@ -1165,3 +1143,50 @@ void getDistance()
     }
   }
 }
+
+void extend_arm()
+{
+  // extend arm so ultrasonic is pointed at first holding spot
+}
+
+void wait_for_cube() // reads to grip ultrasonic to see if robot has come to drop off cube yet
+{ 
+  while(1)
+  {
+    if(gripCM < 20)   //this means the other robot has come to the loading area
+      break;
+  }
+}
+
+void pick_up_cube()
+{
+  //extend arm down and grip cube
+}
+
+void go_to_platform()
+{
+  while(!(whiskers)) // assume whiskers return true when triggered
+  {
+    forward(150);
+  }
+  // may have to reverse a bit more after whiskers are triggered
+  // ^ will be tested experimentally
+}
+
+void place_cube_to_platform()
+{
+  // extend arm fully upward and release grip
+}
+
+void drive_to_starting_position()
+{
+  rotateClockwise(150, 90); // should be facing positive y now
+  while(!(whiskers))
+  {
+    forward(150);
+  }
+  // may have to drive forward more a set distance after this 
+}
+
+
+
